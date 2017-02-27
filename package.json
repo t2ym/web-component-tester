@@ -45,6 +45,7 @@
   ],
   "scripts": {
     "lint": "gulp lint",
+    "install": "gulp build",
     "build": "tsc",
     "test": "tsc && gulp test",
     "prepublish": "gulp prepublish",
