@@ -1448,6 +1448,14 @@ extendInterfaces('fixture', function (context, teardown) {
  *     otherMethod: function() {
  *       // More custom implementation..
  *     },
+ *     getterSetterProperty: {
+ *       get: function() {
+ *         // Custom getter implementation..
+ *       },
+ *       set: function() {
+ *         // Custom setter implementation..
+ *       }
+ *     },
  *     // etc..
  *   });
  * });
@@ -1459,20 +1467,15 @@ extendInterfaces('stub', function(context, teardown) {
     var proto = document.createElement(tagName).constructor.prototype;
 
     // For all keys in the implementation to stub with..
-    var keys = Object.keys(implementation);
-    keys.forEach(function(key) {
+    var stubs = Object.keys(implementation).map(function(key) {
       // Stub the method on the element prototype with Sinon:
-      sinon.stub(proto, key, implementation[key]);
+      return sinon.stub(proto, key, implementation[key]);
     });
 
     // After all tests..
     teardown(function() {
-      // For all of the keys in the implementation we stubbed..
-      keys.forEach(function(key) {
-        // Restore the stub:
-        if (proto[key].isSinonProxy) {
-          proto[key].restore();
-        }
+      stubs.forEach(function(stub) {
+        stub.restore();
       });
     });
   };
@@ -1711,7 +1714,20 @@ CLISocket.prototype.observe = function observe(runner) {
   }.bind(this));
 
   runner.on('childRunner end', function(childRunner) {
-    this.emitEvent('sub-suite-end', childRunner.share);
+    if (childRunner.share.__coverage__) {
+      this.emitEvent('sub-suite-end', {});
+      this.emitEvent('istanbul-coverage', { command: 'reset' });
+      var __coverage__ = childRunner.share.__coverage__;
+      for (var file in __coverage__) {
+        for (var prop in __coverage__[file]) {
+          this.emitEvent('istanbul-coverage', { command: 'fragment', path: [ file, prop ], fragment: __coverage__[file][prop] });
+        }
+      }
+      this.emitEvent('istanbul-coverage', { command: 'collect' });
+    }
+    else {
+      this.emitEvent('sub-suite-end', childRunner.share);
+    }
   }.bind(this));
 
   runner.on('end', function() {

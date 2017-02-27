@@ -64,7 +64,20 @@ CLISocket.prototype.observe = function observe(runner) {
   }.bind(this));
 
   runner.on('childRunner end', function(childRunner) {
-    this.emitEvent('sub-suite-end', childRunner.share);
+    if (childRunner.share.__coverage__) {
+      this.emitEvent('sub-suite-end', {});
+      this.emitEvent('istanbul-coverage', { command: 'reset' });
+      var __coverage__ = childRunner.share.__coverage__;
+      for (var file in __coverage__) {
+        for (var prop in __coverage__[file]) {
+          this.emitEvent('istanbul-coverage', { command: 'fragment', path: [ file, prop ], fragment: __coverage__[file][prop] });
+        }
+      }
+      this.emitEvent('istanbul-coverage', { command: 'collect' });
+    }
+    else {
+      this.emitEvent('sub-suite-end', childRunner.share);
+    }
   }.bind(this));
 
   runner.on('end', function() {
