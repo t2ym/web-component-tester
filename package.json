@@ -83,7 +83,7 @@
     "mocha": "^3.1.2",
     "multer": "^1.1.0",
     "nomnom": "^1.8.1",
-    "polyserve": "https://github.com/t2ym/web-component-tester#istanbul",
+    "polyserve": "https://github.com/t2ym/polyserve#istanbul",
     "promisify-node": "^0.4.0",
     "resolve": "^1.0.0",
     "semver": "^5.3.0",
