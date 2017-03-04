@@ -1,6 +1,6 @@
 {
   "name": "web-component-tester",
-  "version": "6.0.0-prerelease.5-istanbul",
+  "version": "6.0.0-prerelease.5-wct6-plugin",
   "--private-wct--": {
     "client-side-version-range": "4 - 6 || ^6.0.0-prerelease.1"
   },
@@ -91,7 +91,7 @@
     "server-destroy": "^1.0.1",
     "sinon": "^1.11.1",
     "sinon-chai": "^2.6.0",
-    "socket.io": "https://github.com/t2ym/socket.io#istanbul",
+    "socket.io": "^1.7.2",
     "stacky": "^1.3.1",
     "test-fixture": "PolymerElements/test-fixture",
     "wd": "^1.0.0"
