@@ -88,6 +88,7 @@ export async function runTests(context: Context): Promise<void> {
   context._socketIOServers = context._httpServers.map((httpServer) => {
     const socketIOServer = socketIO(httpServer);
     socketIOServer.on('connection', function(socket) {
+      let fragmentBuffer = {};
       context.emit('log:debug', 'Test client opened sideband socket');
       socket.on('client-event', function(data: ClientMessage<any>) {
         const runner = runners[data.browserId];
@@ -97,6 +98,21 @@ export async function runTests(context: Context): Promise<void> {
               `browser with id: ${data.browserId}`);
         }
         runner.onEvent(data.event, data.data);
+      });
+      socket.on('client-event-fragment', function (data) {
+        const runner = runners[data.browserId];
+        if (!runner) {
+          throw new Error(
+              `Unable to find browser runner for ` +
+              `browser with id: ${data.browserId}`);
+        }
+        fragmentBuffer[data.eventId] = fragmentBuffer[data.eventId] || [];
+        fragmentBuffer[data.eventId].push(data.chunk);
+        if (data.last) {
+          data.data = JSON.parse(fragmentBuffer[data.eventId].join(''));
+          delete fragmentBuffer[data.eventId];
+          runner.onEvent(data.event, data.data);
+        }
       });
     });
     return socketIOServer;
