@@ -1679,6 +1679,7 @@ function CLISocket(browserId, socket) {
  *     interesting events back to the CLI runner.
  */
 CLISocket.prototype.observe = function observe(runner) {
+  this.writable = true;
   this.emitEvent('browser-start', {
     url: window.location.toString(),
   });
@@ -1714,20 +1715,7 @@ CLISocket.prototype.observe = function observe(runner) {
   }.bind(this));
 
   runner.on('childRunner end', function(childRunner) {
-    if (childRunner.share.__coverage__) {
-      this.emitEvent('sub-suite-end', {});
-      this.emitEvent('istanbul-coverage', { command: 'reset' });
-      var __coverage__ = childRunner.share.__coverage__;
-      for (var file in __coverage__) {
-        for (var prop in __coverage__[file]) {
-          this.emitEvent('istanbul-coverage', { command: 'fragment', path: [ file, prop ], fragment: __coverage__[file][prop] });
-        }
-      }
-      this.emitEvent('istanbul-coverage', { command: 'collect' });
-    }
-    else {
-      this.emitEvent('sub-suite-end', childRunner.share);
-    }
+    this.emitEvent('sub-suite-end', childRunner.share);
   }.bind(this));
 
   runner.on('end', function() {
@@ -1740,11 +1728,101 @@ CLISocket.prototype.observe = function observe(runner) {
  * @param {*} data Additional data to pass with the event.
  */
 CLISocket.prototype.emitEvent = function emitEvent(event, data) {
-  this.socket.emit('client-event', {
-    browserId: this.browserId,
-    event:     event,
-    data:      data,
-  });
+  var self = this;
+  var isPolling = false;
+  var dataJSON = data ? JSON.stringify(data) : '';
+  var dataSize = dataJSON.length;
+  var chunkSize = 65536;
+  var chunks = [];
+  var chunk;
+  var eventId;
+  var transport;
+  if (this.socket.io &&
+      this.socket.io.engine &&
+      this.socket.io.engine.transport &&
+      this.socket.io.engine.transport.query &&
+      this.socket.io.engine.transport.query.transport === 'polling') {
+    isPolling = true;
+    this.eventQueue = this.eventQueue || [];
+  }
+  if (isPolling) {
+    eventId = this.browserId + ',' + event + ',' + Date.now();
+    if (dataSize > chunkSize) {
+      transport = this.socket.io.engine.transport;
+      while (dataJSON) {
+        chunks.push(dataJSON.substr(0, chunkSize));
+        dataJSON = dataJSON.substr(chunkSize);
+      }
+      function processEventQueue() {
+        if (document.querySelector('li.failures a')) {
+          document.querySelector('li.failures a').textContent = self.eventQueue.map(function (item) {
+            if (item.event === 'client-event-fragment') {
+              return item.data.eventId;
+            }
+            else {
+              return item.data.event;
+            }
+          }).join(' ');
+        }
+        var eventItem;
+        while (eventItem = self.eventQueue.shift()) {
+          self.socket.emit(eventItem.event, eventItem.data);
+          if (eventItem.event === 'client-event-fragment') {
+            break;
+          }
+        }
+        if (self.eventQueue.length === 0) {
+          self.writable = true;
+          transport.removeListener('drain', processEventQueue);
+        }
+      }
+      while (chunk = chunks.shift()) {
+        this.eventQueue.push({
+          event:   'client-event-fragment',
+          data: {
+            browserId: self.browserId,
+            eventId:   eventId,
+            event:     event,
+            chunk:     chunk,
+            last:      chunks.length === 0
+          }
+        });
+      }
+      if (this.writable) {
+        this.writable = false;
+        transport.on('drain', processEventQueue);
+        if (transport.writable) {
+          processEventQueue();
+        }
+      }
+    }
+    else {
+      if (this.writable) {
+        this.socket.emit('client-event', {
+          browserId: this.browserId,
+          event:     event,
+          data:      data,
+        });
+      }
+      else {
+        this.eventQueue.push({
+          event:   'client-event',
+          data: {
+            browserId: this.browserId,
+            event:     event,
+            data:      data,
+          }
+        });
+      }
+    }
+  }
+  else {
+    this.socket.emit('client-event', {
+      browserId: this.browserId,
+      event:     event,
+      data:      data,
+    });
+  }
 };
 
 /**
