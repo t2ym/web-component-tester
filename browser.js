@@ -1754,16 +1754,6 @@ CLISocket.prototype.emitEvent = function emitEvent(event, data) {
         dataJSON = dataJSON.substr(chunkSize);
       }
       function processEventQueue() {
-        if (document.querySelector('li.failures a')) {
-          document.querySelector('li.failures a').textContent = self.eventQueue.map(function (item) {
-            if (item.event === 'client-event-fragment') {
-              return item.data.eventId;
-            }
-            else {
-              return item.data.event;
-            }
-          }).join(' ');
-        }
         var eventItem;
         while (eventItem = self.eventQueue.shift()) {
           self.socket.emit(eventItem.event, eventItem.data);
