@@ -1,6 +1,7 @@
 /// <reference types="node" />
 /// <reference types="socket.io" />
 /// <reference types="spdy" />
+/// <reference types="express-serve-static-core" />
 /**
  * @license
  * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
