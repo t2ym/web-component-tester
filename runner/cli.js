@@ -78,7 +78,9 @@ function runSauceTunnel(_env, args, output) {
 exports.runSauceTunnel = runSauceTunnel;
 function _runSauceTunnel(args, output) {
     return __awaiter(this, void 0, void 0, function* () {
-        const diskOptions = config.fromDisk();
+        const cmdOptions = config.preparseArgs(args);
+        const context = new context_1.Context(cmdOptions);
+        const diskOptions = context.options;
         const baseOptions = (diskOptions.plugins && diskOptions.plugins['sauce']) ||
             diskOptions.sauce || {};
         const plugin = yield plugin_1.Plugin.get('sauce');

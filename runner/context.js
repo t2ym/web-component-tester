@@ -25,6 +25,8 @@ const events = require("events");
 const _ = require("lodash");
 const config = require("./config");
 const plugin_1 = require("./plugin");
+const JSON_MATCHER = 'wct.conf.json';
+const CONFIG_MATCHER = 'wct.conf.*';
 /**
  * Exposes the current state of a WCT run, and emits events/hooks for anyone
  * downstream to listen to.
@@ -41,13 +43,23 @@ class Context extends events.EventEmitter {
         super();
         this._hookHandlers = {};
         options = options || {};
+        let matcher;
+        if (options.configFile) {
+            matcher = options.configFile;
+        }
+        else if (options.enforceJsonConf) {
+            matcher = JSON_MATCHER;
+        }
+        else {
+            matcher = CONFIG_MATCHER;
+        }
         /**
          * The configuration for the current WCT run.
          *
          * We guarantee that this object is never replaced (e.g. you are free to
          * hold a reference to it, and make changes to it).
          */
-        this.options = config.merge(config.defaults(), config.fromDisk(options.enforceJsonConf, options.root), options);
+        this.options = config.merge(config.defaults(), config.fromDisk(matcher, options.root), options);
     }
     // Hooks
     //
@@ -87,7 +99,8 @@ class Context extends events.EventEmitter {
                 argsEnd = argsEnd--;
             }
             const hookArgs = args.slice(0, argsEnd + 1);
-            boundHooks = hooks.map((hook) => hook.bind.apply(hook, [null].concat(hookArgs)));
+            boundHooks =
+                hooks.map((hook) => hook.bind.apply(hook, [null].concat(hookArgs)));
             if (!boundHooks) {
                 boundHooks = hooks;
             }
