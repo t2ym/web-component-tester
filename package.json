@@ -1,6 +1,6 @@
 {
   "name": "web-component-tester",
-  "version": "6.0.0-prerelease.8-wct6-plugin.2",
+  "version": "6.0.0-prerelease.9-wct6-plugin.2",
   "--private-wct--": {
     "client-side-version-range": "4 - 6 || ^6.0.0-prerelease.1"
   },
@@ -45,7 +45,7 @@
   ],
   "scripts": {
     "lint": "gulp lint",
-    "build": "tsc",
+    "build": "tsc && gulp build",
     "test": "tsc && gulp test",
     "prepublish": "gulp prepublish",
     "test:watch": "watch 'gulp test:unit' runner/ browser/ bin/ test/ tasks/",
