@@ -30,7 +30,7 @@ export function loadSuites(files) {
   files.forEach(function(file) {
     if (/\.js(\?.*)?$/.test(file)) {
       jsSuites.push(file);
-    } else if (/\.html(\?.*)?$/.test(file)) {
+    } else if (/\.html(\?.*)?(#.*)?$/.test(file)) {
       htmlSuites.push(file);
     } else {
       throw new Error('Unknown resource type: ' + file);

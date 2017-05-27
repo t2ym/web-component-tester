@@ -574,7 +574,7 @@ function loadSuites(files) {
   files.forEach(function(file) {
     if (/\.js(\?.*)?$/.test(file)) {
       jsSuites$1.push(file);
-    } else if (/\.html(\?.*)?$/.test(file)) {
+    } else if (/\.html(\?.*)?(#.*)?$/.test(file)) {
       htmlSuites$1.push(file);
     } else {
       throw new Error('Unknown resource type: ' + file);
