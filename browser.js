@@ -470,7 +470,7 @@ var _config = {
     'lodash/lodash.js',
     'mocha/mocha.js',
     'chai/chai.js',
-    'sinonjs/sinon.js',
+    'sinon/sinon.js',
     'sinon-chai/lib/sinon-chai.js',
     'accessibility-developer-tools/dist/js/axs_testing.js'
   ],
