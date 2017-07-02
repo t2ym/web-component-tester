@@ -1,5 +1,5 @@
 {
-  "name": "web-component-tester",
+  "name": "@t2ym/web-component-tester",
   "version": "6.0.0-wct6-plugin.5",
   "--private-wct--": {
     "client-side-version-range": "4 - 6 || ^6.0.0-prerelease.1"
@@ -47,7 +47,7 @@
     "lint": "gulp lint",
     "build": "tsc && gulp build",
     "test": "tsc && gulp test",
-    "prepublish": "gulp prepublish",
+    "prepublish": "echo skip gulp prepublish",
     "test:watch": "watch 'gulp test:unit' runner/ browser/ bin/ test/ tasks/",
     "format": "find runner test | grep '\\.js$\\|\\.ts$' | xargs ./node_modules/.bin/clang-format --style=file -i"
   },
