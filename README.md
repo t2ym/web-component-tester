@@ -1,8 +1,15 @@
-[![NPM version](http://img.shields.io/npm/v/web-component-tester.svg?style=flat-square)](https://npmjs.org/package/web-component-tester)
-[![Build Status](http://img.shields.io/travis/Polymer/web-component-tester.svg?style=flat-square)](https://travis-ci.org/Polymer/web-component-tester)
-[![Gitter](http://img.shields.io/badge/slack-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://polymer-slack.herokuapp.com/)
+[![NPM version](http://img.shields.io/npm/v/@t2ym/web-component-tester.svg?style=flat-square)](https://npmjs.org/package/@t2ym/web-component-tester)
 
-`web-component-tester` makes testing your web components a breeze!
+# A fork of [web-component-tester](https://www.npmjs.com/package/web-component-tester) to work with [wct-istanbul](https://www.npmjs.com/package/wct-istanbul)
+
+## Changes from the official [web-component-tester](https://www.npmjs.com/package/web-component-tester)
+
+* Use the forked [t2ym/polyserve#istanbul](https://github.com/t2ym/polyserve/tree/istanbul), which has a WCT plugin mode to allow Express middlewares in WCT plugins to transform contents BEFORE built-in transformations like Babel ES5 transpilation.
+* Enable the WCT plugin mode for t2ym/polyserve#istanbul.
+* Finish Express middleware configurations for polyserve after all the plugin initializations.
+* Chop large socket.io JSON payloads of polling transport into 64KB chunks of partial JSON strings and reconstruct them on passing them to middleware plugins so that they can pass strict squid proxies in Sauce Labs.
+
+## No other functional differences from the official web-component-tester 6.0.0.
 
 You get a browser-based testing environment, configured out of the box with:
 
