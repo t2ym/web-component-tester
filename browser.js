@@ -1737,7 +1737,7 @@ CLISocket.prototype.emitEvent = function emitEvent(event, data) {
   var chunks = [];
   var chunk;
   var eventId;
-  var transport;
+  var disconnectOnDrain = true;
   if (this.socket.io &&
       this.socket.io.engine &&
       this.socket.io.engine.transport &&
@@ -1748,8 +1748,7 @@ CLISocket.prototype.emitEvent = function emitEvent(event, data) {
   }
   if (isPolling) {
     eventId = this.browserId + ',' + event + ',' + Date.now();
-    if (dataSize > chunkSize) {
-      transport = this.socket.io.engine.transport;
+    if (disconnectOnDrain || dataSize > chunkSize) {
       while (dataJSON) {
         chunks.push(dataJSON.substr(0, chunkSize));
         dataJSON = dataJSON.substr(chunkSize);
@@ -1763,8 +1762,30 @@ CLISocket.prototype.emitEvent = function emitEvent(event, data) {
           }
         }
         if (self.eventQueue.length === 0) {
-          self.writable = true;
-          transport.removeListener('drain', processEventQueue);
+          if (disconnectOnDrain) {
+            self.socket.disconnect();
+            self.socket.io.engine.transport.removeListener('drain', processEventQueue);
+            self.socket = {
+              emit: function(event, data) {
+                var socket = io(SOCKETIO_ENDPOINT, { transports: ['polling'] });
+                socket.on('error', function(error) {
+                  socket.off();
+                  throw error;
+                });
+
+                socket.on('connect', function() {
+                  socket.off();
+                  self.socket = socket;
+                  self.socket.emit(event, data);
+                });
+              }
+            };
+            self.writable = true;
+          }
+          else {
+            self.writable = true;
+            self.socket.io.engine.transport.removeListener('drain', processEventQueue);
+          }
         }
       }
       while (chunk = chunks.shift()) {
@@ -1781,8 +1802,8 @@ CLISocket.prototype.emitEvent = function emitEvent(event, data) {
       }
       if (this.writable) {
         this.writable = false;
-        transport.on('drain', processEventQueue);
-        if (transport.writable) {
+        this.socket.io.engine.transport.on('drain', processEventQueue);
+        if (this.socket.io.engine.transport.writable) {
           processEventQueue();
         }
       }
@@ -1831,7 +1852,7 @@ CLISocket.init = function init(done) {
   loadScript(SOCKETIO_LIBRARY, function(error) {
     if (error) return done(error);
 
-    var socket = io(SOCKETIO_ENDPOINT);
+    var socket = io(SOCKETIO_ENDPOINT, { transports: ['polling'] });
     socket.on('error', function(error) {
       socket.off();
       done(error);
